@@ -14,7 +14,7 @@ export default function PortalLoginPage() {
     const [otp, setOtp] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
-    const [masjidName, setMasjidName] = useState("Member Portal");
+    const [masjidName, setMasjidName] = useState("Project Mizan");
 
     useEffect(() => {
         // Fetch Tenant Info
@@ -202,6 +202,9 @@ export default function PortalLoginPage() {
                     </p>
                 </CardContent>
             </Card>
+            <div className="absolute bottom-4 text-xs text-gray-400">
+                v0.3 Alpha • Project Mizan
+            </div>
         </div>
     );
 }

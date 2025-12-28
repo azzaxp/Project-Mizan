@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   // Basic Meta
   title: {
-    default: "Project Mizan | Digital Jamath Management",
+    default: "Project Mizan | Modern Masjid Management",
     template: "%s | Project Mizan"
   },
   description: "Comprehensive mosque and community management platform. Manage memberships, finances (Baitul Maal), welfare (Khidmat), surveys, and more for your Jamath.",

@@ -25,6 +25,7 @@ from apps.jamath.api import (
 from apps.welfare.api import VolunteerViewSet, GrantApplicationViewSet
 from apps.shared.api import TenantRegistrationView, FindWorkspaceView, VerifyEmailView, PasswordResetRequestView, PasswordResetConfirmView, TenantInfoView
 from apps.shared.ai_guide import BasiraGuideView
+from apps.shared.data_agent import BasiraDataAgentView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Router Setup
@@ -94,6 +95,7 @@ urlpatterns = [
     
     # Basira AI Guide
     path('api/basira/', BasiraGuideView.as_view(), name='basira-guide'),
+    path('api/basira/data-query/', BasiraDataAgentView.as_view(), name='basira-data-agent'),
     
     # REST API Router
     path('api/', include(router.urls)),

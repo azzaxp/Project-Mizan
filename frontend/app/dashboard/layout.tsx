@@ -18,24 +18,24 @@ import {
     ChevronDown,
     Inbox,
     Megaphone,
-    HelpCircle
+    HelpCircle,
+    Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfigProvider, useConfig } from "@/context/ConfigContext";
-import BasiraChat from "@/components/BasiraChat";
 
 const defaultNavigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Inbox", href: "/dashboard/inbox", icon: Inbox },
     { name: "Households", href: "/dashboard/households", icon: Users, id: 'households' },
     { name: "Finance", href: "/dashboard/finance", icon: DollarSign, id: 'finance' },
+    { name: "Basira AI", href: "/dashboard/basira", icon: Sparkles },
     { name: "Surveys / Tahqeeq", href: "/dashboard/surveys", icon: ClipboardCheck },
     { name: "Announcements", href: "/dashboard/announcements", icon: Megaphone },
     { name: "Welfare (Khidmat)", href: "/dashboard/welfare", icon: Heart },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
     { name: "Staff (Zimmedar)", href: "/dashboard/users", icon: UserCog },
-    { name: "Help & Support", href: "/dashboard/help", icon: HelpCircle },
 ];
 
 function DashboardInner({ children }: { children: React.ReactNode }) {
@@ -192,6 +192,9 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
 
                         </div>
                     </div>
+                    <div className="px-4 py-2 text-xs text-center text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
+                        v0.3 Alpha • Project Mizan
+                    </div>
                 </div>
             </aside>
 
@@ -234,7 +237,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <DashboardInner>
                 {children}
             </DashboardInner>
-            <BasiraChat />
         </ConfigProvider>
     );
 }
