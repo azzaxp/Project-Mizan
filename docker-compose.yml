@@ -19,7 +19,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
   db:
     image: postgres:16-alpine
-    container_name: mizan_db
+    container_name: digitaljamath_db
     environment:
       - POSTGRES_DB=digitaljamath_db
       - POSTGRES_USER=postgres
@@ -36,7 +36,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: mizan_redis
+    container_name: digitaljamath_redis
     ports:
       - "6379:6379"
 
