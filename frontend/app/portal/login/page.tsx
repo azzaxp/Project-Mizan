@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,30 @@ export default function PortalLoginPage() {
     const [otp, setOtp] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [masjidName, setMasjidName] = useState("Member Portal");
+
+    useEffect(() => {
+        // Fetch Tenant Info
+        const fetchTenantInfo = async () => {
+            try {
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                const apiBase = `${protocol}//${hostname}:8000`;
+
+                const res = await fetch(`${apiBase}/api/tenant-info/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.name && !data.is_public) {
+                        setMasjidName(data.name);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch tenant info", err);
+            }
+        };
+
+        fetchTenantInfo();
+    }, []);
 
     const handleRequestOTP = async () => {
         setIsLoading(true);
@@ -85,12 +109,17 @@ export default function PortalLoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800 p-4">
+            <div className="absolute top-4 left-4">
+                <Button variant="ghost" size="sm" onClick={() => router.push("/")}>
+                    ← Back to Home
+                </Button>
+            </div>
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-4 w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                         <Phone className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <CardTitle className="text-2xl">Member Portal</CardTitle>
+                    <CardTitle className="text-2xl">{masjidName}</CardTitle>
                     <CardDescription>
                         {step === "phone"
                             ? "Enter your registered mobile number to login"
@@ -162,6 +191,9 @@ export default function PortalLoginPage() {
                             >
                                 Change Number
                             </Button>
+                            <p className="text-center text-xs text-blue-600 font-mono bg-blue-50 p-1 rounded">
+                                Demo OTP: 123456
+                            </p>
                         </>
                     )}
 

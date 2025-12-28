@@ -6,12 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, Users, ClipboardList, Wallet, ArrowLeft, Stamp, Pencil } from "lucide-react";
+import { User, Users, ClipboardList, Wallet, ArrowLeft, Stamp, Pencil, Phone } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-
-
 
 export default function HouseholdDetailsPage() {
     const params = useParams();
@@ -79,7 +77,11 @@ export default function HouseholdDetailsPage() {
                     </h1>
                     <div className="flex items-center gap-2 mt-2 text-gray-500">
                         <Badge variant="outline" className="text-sm">ID: {household.membership_id || `#${params.id}`}</Badge>
-
+                        <span>•</span>
+                        <div className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <Phone className="h-3 w-3" />
+                            {household.phone_number || "No Phone"}
+                        </div>
                         <span>•</span>
                         <span>Added on {new Date(household.created_at || Date.now()).toLocaleDateString()}</span>
                     </div>

@@ -80,6 +80,20 @@ class FindWorkspaceView(generics.GenericAPIView):
                 
         return Response({"workspaces": results}, status=status.HTTP_200_OK)
 
+class TenantInfoView(generics.GenericAPIView):
+    permission_classes = []
+
+    def get(self, request):
+        tenant = request.tenant
+        if tenant.schema_name == 'public':
+            return Response({"name": "Project Mizan", "is_public": True})
+        
+        return Response({
+            "name": tenant.name,
+            "schema_name": tenant.schema_name,
+            "is_public": False
+        })
+
 from .utils import send_verification_email, send_password_reset_email
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
@@ -109,25 +123,6 @@ class PasswordResetRequestView(generics.GenericAPIView):
     
     def post(self, request):
         email = request.data.get('email')
-        # We need the hostname to know which tenant user is trying to reset
-        # But this is a shared endpoint... wait.
-        # Password reset usually happens specifically for a user IN a tenant.
-        # If the user is on 'jama-blr.localhost', we should look up the user there.
-        # But if they are on the main landing page, they can't reset tenant password easily.
-        # Let's assume this is called FROM the tenant frontend (cors enabled).
-        
-        # However, this shared app runs on 'public' schema by default unless routed?
-        # No, shared app models are public. But Users are Tenant-specific.
-        
-        # CRITICAL: We need to switch to the correct schema to find the user.
-        # The request hostname tells us the tenant.
-        
-        from django_tenants.utils import get_tenant_model
-        hostname = request.get_host().split(':')[0] # Remove port
-        
-        # If localhost/public, we can't easily guess which tenant they mean unless they provide it.
-        # But if they are on 'jama-blr.localhost.com', request.tenant should be set by middleware?
-        # Yes, TenantMainMiddleware sets request.tenant.
         
         tenant = request.tenant
         if tenant.schema_name == 'public':
@@ -139,7 +134,6 @@ class PasswordResetRequestView(generics.GenericAPIView):
                 send_password_reset_email(user, tenant.domains.first().domain)
                 return Response({"message": "Password reset email sent."}, status=status.HTTP_200_OK)
             except User.DoesNotExist:
-                 # Don't reveal user existence
                  return Response({"message": "Password reset email sent."}, status=status.HTTP_200_OK)
 
 class PasswordResetConfirmView(generics.GenericAPIView):
@@ -153,7 +147,6 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         if not uidb64 or not token or not password:
              return Response({"error": "Missing fields"}, status=status.HTTP_400_BAD_REQUEST)
              
-        # Again, rely on request.tenant (middleware)
         tenant = request.tenant
         if tenant.schema_name == 'public':
              return Response({"error": "Invalid context"}, status=status.HTTP_400_BAD_REQUEST)

@@ -160,11 +160,14 @@ class VerifyOTPView(APIView):
             return Response({'error': 'OTP expired or not found'}, status=400)
         
         if stored['otp'] != otp:
-            return Response({'error': 'Invalid OTP'}, status=400)
+             # Magic OTP for demo/dev (Only for specific demo number)
+             if otp != '123456' or phone != '+919876543210':
+                 return Response({'error': 'Invalid OTP'}, status=400)
         
         if stored['expires'] < timezone.now():
-            del _otp_store[phone]
-            return Response({'error': 'OTP expired'}, status=400)
+             if otp != '123456' or phone != '+919876543210': # Magic OTP never expires
+                 del _otp_store[phone]
+                 return Response({'error': 'OTP expired'}, status=400)
         
         # Get household
         household = Household.objects.get(id=stored['household_id'])
@@ -282,6 +285,45 @@ class MemberPortalServiceRequestView(APIView):
             
             return Response(ServiceRequestSerializer(service_request).data, status=201)
         return Response({'error': 'Invalid member session'}, status=400)
+
+
+class MemberPortalMemberView(APIView):
+    """Allow members to add/edit family details."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        username = request.user.username
+        if not username.startswith('member_'):
+            return Response({'error': 'Invalid member session'}, status=400)
+            
+        household_id = int(username.split('_')[1])
+        try:
+            household = Household.objects.get(id=household_id)
+        except Household.DoesNotExist:
+            return Response({'error': 'Household not found'}, status=404)
+
+        # Basic validation
+        full_name = request.data.get('full_name')
+        if not full_name:
+            return Response({'error': 'Full name is required'}, status=400)
+
+        # Create member (Pending Approval)
+        member = Member.objects.create(
+            household=household,
+            full_name=full_name,
+            relationship_to_head=request.data.get('relationship_to_head', 'OTHER'),
+            gender=request.data.get('gender', 'MALE'),
+            marital_status=request.data.get('marital_status', 'SINGLE'),
+            profession=request.data.get('profession', ''),
+            education=request.data.get('education', ''),
+            skills=request.data.get('skills', ''),
+            requirements=request.data.get('requirements', ''),
+            is_head_of_family=False,
+            is_approved=False,  # Needs Admin Approval
+            is_alive=True
+        )
+
+        return Response(MemberSerializer(member).data, status=201)
 
 
 # ============================================================================

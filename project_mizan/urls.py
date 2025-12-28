@@ -12,6 +12,7 @@ from apps.jamath.api import (
     # Member Portal
     MemberPortalProfileView, MemberPortalReceiptsView, 
     MemberPortalAnnouncementsView, MemberPortalServiceRequestView,
+    MemberPortalMemberView,
     # Admin
     AdminPendingMembersView, AdminMembershipConfigView,
     # User Profile
@@ -19,7 +20,7 @@ from apps.jamath.api import (
 )
 
 from apps.welfare.api import VolunteerViewSet, GrantApplicationViewSet
-from apps.shared.api import TenantRegistrationView, FindWorkspaceView, VerifyEmailView, PasswordResetRequestView, PasswordResetConfirmView
+from apps.shared.api import TenantRegistrationView, FindWorkspaceView, VerifyEmailView, PasswordResetRequestView, PasswordResetConfirmView, TenantInfoView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Router Setup
@@ -50,6 +51,7 @@ urlpatterns = [
     path('api/register/', TenantRegistrationView.as_view(), name='register-tenant'),
     path('api/find-workspace/', FindWorkspaceView.as_view(), name='find-workspace'),
     path('api/verify-email/', VerifyEmailView.as_view(), name='verify-email'),
+    path('api/tenant-info/', TenantInfoView.as_view(), name='tenant-info'),
     
     # Admin Auth (username/password)
     path('api/auth/password-reset-request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
@@ -66,6 +68,7 @@ urlpatterns = [
     path('api/portal/receipts/', MemberPortalReceiptsView.as_view(), name='portal-receipts'),
     path('api/portal/announcements/', MemberPortalAnnouncementsView.as_view(), name='portal-announcements'),
     path('api/portal/service-requests/', MemberPortalServiceRequestView.as_view(), name='portal-service-requests'),
+    path('api/portal/members/', MemberPortalMemberView.as_view(), name='portal-members'),
     
     # Admin (Zimmedar) APIs
     path('api/admin/pending-members/', AdminPendingMembersView.as_view(), name='admin-pending-members'),

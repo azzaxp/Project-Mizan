@@ -10,6 +10,15 @@ import {
     User, Receipt, Bell, FileText, LogOut,
     CheckCircle, AlertCircle, Users, Home
 } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 type MembershipStatus = {
     status: string;
@@ -116,8 +125,8 @@ export default function PortalDashboardPage() {
                             </div>
                             <Badge
                                 className={`text-sm px-3 py-1 ${membership?.is_active
-                                        ? 'bg-green-500 hover:bg-green-500'
-                                        : 'bg-red-500 hover:bg-red-500'
+                                    ? 'bg-green-500 hover:bg-green-500'
+                                    : 'bg-red-500 hover:bg-red-500'
                                     }`}
                             >
                                 {membership?.is_active ? (
@@ -206,9 +215,47 @@ export default function PortalDashboardPage() {
                             <p className="text-sm text-amber-700 dark:text-amber-300">
                                 You have paid ₹{membership.amount_paid} of ₹{membership.minimum_required} required.
                             </p>
-                            <Button className="mt-3" size="sm">
-                                Pay Now
-                            </Button>
+
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button className="mt-3" size="sm">
+                                        Pay Now
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Membership Payment</DialogTitle>
+                                        <DialogDescription>
+                                            Scan the QR code to pay your membership fees.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex flex-col items-center justify-center p-4 space-y-4">
+                                        <div className="bg-white p-2 rounded-lg border-2 border-gray-200">
+                                            {/* Mock QR Code */}
+                                            <div className="w-48 h-48 bg-gray-900 flex items-center justify-center text-white text-xs text-center p-4">
+                                                [ UPI QR CODE ]
+                                                <br />
+                                                jamath@upi
+                                            </div>
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <p className="font-semibold text-lg">Amount Due: ₹{parseFloat(membership.minimum_required) - parseFloat(membership.amount_paid)}</p>
+                                            <p className="text-sm text-gray-500">UPI ID: jamath@upi</p>
+                                        </div>
+                                        <div className="w-full bg-blue-50 p-3 rounded text-xs text-blue-700">
+                                            <p className="font-semibold mb-1">Bank Transfer Details:</p>
+                                            <p>Account Name: Project Mizan Jamath</p>
+                                            <p>Account No: 1234567890</p>
+                                            <p>IFSC: MZN0001234</p>
+                                        </div>
+                                    </div>
+                                    <DialogFooter className="sm:justify-center">
+                                        <Button type="button" variant="secondary" className="w-full">
+                                            I have made the payment
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </CardContent>
                     </Card>
                 )}

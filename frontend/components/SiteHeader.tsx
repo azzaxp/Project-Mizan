@@ -1,24 +1,31 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
     return (
-        <header className="border-b bg-white dark:bg-gray-950">
-            <div className="container mx-auto px-4 lg:px-6 h-14 flex items-center">
+        <header className="border-b bg-white dark:bg-gray-950 sticky top-0 z-50">
+            <div className="container mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
                 <Link className="flex items-center justify-center font-bold text-xl" href="/">
                     Project Mizan
                 </Link>
-                <nav className="ml-auto flex gap-4 sm:gap-6">
-                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about">
+                <nav className="hidden md:flex gap-6 items-center">
+                    <Link className="text-sm font-medium hover:text-blue-600 transition-colors" href="/about">
                         About
                     </Link>
-                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="/#features">
+                    <Link className="text-sm font-medium hover:text-blue-600 transition-colors" href="/#features">
                         Features
                     </Link>
-                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="/about#team">
-                        Team
-                    </Link>
-                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="https://github.com/azzaxp/Project-Mizan" target="_blank">
+                    <Link className="text-sm font-medium hover:text-blue-600 transition-colors" href="https://github.com/azzaxp/Project-Mizan" target="_blank">
                         GitHub
+                    </Link>
+                    <div className="h-4 w-px bg-gray-300 mx-2"></div>
+                    <Link className="text-sm font-medium text-gray-600 hover:text-black" href="/auth/login">
+                        Admin Login
+                    </Link>
+                    <Link href="/portal/login">
+                        <Button size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700">
+                            Member Login
+                        </Button>
                     </Link>
                 </nav>
             </div>

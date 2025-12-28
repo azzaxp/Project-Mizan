@@ -58,6 +58,11 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+            <div className="absolute top-4 left-4">
+                <Button variant="ghost" size="sm" onClick={() => router.push("/")}>
+                    ← Back to Home
+                </Button>
+            </div>
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center">Sign in to Project Mizan</CardTitle>
