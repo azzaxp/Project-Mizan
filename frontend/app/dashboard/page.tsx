@@ -27,11 +27,12 @@ export default function DashboardPage() {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
                 };
-                
-                
+
+
                 const apiBase = getApiBaseUrl();
 
                 // Extract masjid name from subdomain
+                const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
                 const subdomain = hostname.split('.')[0];
                 const formattedName = subdomain
                     .split(/[_-]/)
