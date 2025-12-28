@@ -15,7 +15,7 @@ export function SiteHeader() {
                     <Link className="text-sm font-medium hover:text-blue-600 transition-colors" href="/#features">
                         Features
                     </Link>
-                    <Link className="text-sm font-medium hover:text-blue-600 transition-colors" href="https://github.com/azzaxp/Project-Mizan" target="_blank">
+                    <Link className="text-sm font-medium hover:text-blue-600 transition-colors" href="https://github.com/azzaxp/digitaljamath" target="_blank">
                         GitHub
                     </Link>
                     <div className="h-4 w-px bg-gray-300 mx-2"></div>

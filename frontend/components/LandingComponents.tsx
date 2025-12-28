@@ -108,7 +108,7 @@ export function JoinMovementSection() {
 
                 <div className="space-y-4 md:space-y-0 md:space-x-4">
                     <Button size="lg" className="bg-white text-black hover:bg-gray-200" asChild>
-                        <Link href="https://github.com/azzaxp/Project-Mizan" target="_blank">
+                        <Link href="https://github.com/azzaxp/digitaljamath" target="_blank">
                             <Github className="mr-2 h-5 w-5" /> Contribute on GitHub
                         </Link>
                     </Button>

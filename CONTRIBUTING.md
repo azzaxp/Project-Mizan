@@ -23,8 +23,8 @@ This project is heavily assisted by AI tools (Cursor, Copilot, etc.). We encoura
 
 1. **Clone the Repo**
    ```bash
-   git clone https://github.com/azzaxp/Project-Mizan.git
-   cd Project-Mizan
+   git clone https://github.com/azzaxp/digitaljamath.git
+   cd digitaljamath
    ```
 
 2. **Backend Setup** (Django)

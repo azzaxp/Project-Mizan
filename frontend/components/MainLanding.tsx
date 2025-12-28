@@ -125,7 +125,7 @@ export function MainLanding() {
                                     <Link href="/auth/register">Get Started Free</Link>
                                 </Button>
                                 <Button variant="outline" size="lg" asChild>
-                                    <Link href="https://github.com/azzaxp/Project-Mizan" target="_blank">
+                                    <Link href="https://github.com/azzaxp/digitaljamath" target="_blank">
                                         View on GitHub
                                     </Link>
                                 </Button>
@@ -288,7 +288,7 @@ export function MainLanding() {
                                         <li className="flex items-center"><Check className="mr-2 h-4 w-4 text-green-500" /> Community Support</li>
                                     </ul>
                                     <Button className="w-full mt-6" variant="outline" asChild>
-                                        <Link href="https://github.com/azzaxp/Project-Mizan" target="_blank">Host Yourself</Link>
+                                        <Link href="https://github.com/azzaxp/digitaljamath" target="_blank">Host Yourself</Link>
                                     </Button>
                                 </CardContent>
                             </Card>
