@@ -11,7 +11,8 @@ import random
 
 from .models import (
     Household, Member, Survey, SurveyResponse,
-    MembershipConfig, Subscription, Receipt, Announcement, ServiceRequest
+    MembershipConfig, Subscription, Receipt, Announcement, ServiceRequest,
+    Ledger, Supplier, JournalEntry, JournalItem
 )
 from .serializers import SurveySerializer, SurveyResponseSerializer
 from .services import MembershipService, ProfileService, NotificationService
@@ -74,9 +75,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
+    
     class Meta:
         model = Announcement
-        fields = ['id', 'title', 'content', 'published_at', 'expires_at']
+        fields = ['id', 'title', 'content', 'published_at', 'expires_at', 'created_by_name', 'status']
 
 
 class ServiceRequestSerializer(serializers.ModelSerializer):
@@ -97,6 +100,89 @@ class MembershipConfigSerializer(serializers.ModelSerializer):
                   'household_label', 'member_label', 'masjid_name', 'is_active']
 
 
+# ============================================================================
+# MIZAN LEDGER SERIALIZERS
+# ============================================================================
+
+class LedgerSerializer(serializers.ModelSerializer):
+    balance = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Ledger
+        fields = ['id', 'code', 'name', 'account_type', 'fund_type', 'parent', 
+                  'is_system', 'is_active', 'balance', 'children']
+        read_only_fields = ['is_system']
+
+    def get_children(self, obj):
+        children = obj.children.filter(is_active=True)
+        return LedgerSerializer(children, many=True).data if children.exists() else []
+
+
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = ['id', 'name', 'contact_person', 'phone', 'address', 'gstin', 'is_active']
+
+
+class JournalItemSerializer(serializers.ModelSerializer):
+    ledger_name = serializers.CharField(source='ledger.name', read_only=True)
+    ledger_code = serializers.CharField(source='ledger.code', read_only=True)
+
+    class Meta:
+        model = JournalItem
+        fields = ['id', 'ledger', 'ledger_name', 'ledger_code', 'debit_amount', 'credit_amount', 'particulars']
+
+
+class JournalEntrySerializer(serializers.ModelSerializer):
+    items = JournalItemSerializer(many=True)
+    total_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    donor_name = serializers.SerializerMethodField()
+    supplier_name = serializers.CharField(source='supplier.name', read_only=True)
+    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
+
+    class Meta:
+        model = JournalEntry
+        fields = ['id', 'voucher_number', 'voucher_type', 'date', 'narration',
+                  'donor', 'donor_name', 'donor_name_manual', 'donor_pan', 'donor_intent',
+                  'supplier', 'supplier_name', 'vendor_invoice_no', 'vendor_invoice_date', 'proof_document',
+                  'payment_mode', 'is_finalized', 'total_amount', 'items',
+                  'created_by_name', 'created_at']
+        read_only_fields = ['voucher_number', 'is_finalized', 'created_at']
+
+    def get_donor_name(self, obj):
+        if obj.donor:
+            return obj.donor.full_name
+        return obj.donor_name_manual or "Unknown"
+
+    def create(self, validated_data):
+        items_data = validated_data.pop('items')
+        journal_entry = JournalEntry.objects.create(**validated_data)
+        
+        for item_data in items_data:
+            JournalItem.objects.create(journal_entry=journal_entry, **item_data)
+        
+        # Run validation after items are created
+        journal_entry.full_clean()
+        return journal_entry
+
+    def update(self, instance, validated_data):
+        if instance.is_finalized:
+            raise serializers.ValidationError("Cannot modify a finalized entry.")
+        
+        items_data = validated_data.pop('items', None)
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        if items_data is not None:
+            instance.items.all().delete()
+            for item_data in items_data:
+                JournalItem.objects.create(journal_entry=instance, **item_data)
+        
+        instance.full_clean()
+        return instance
 
 
 
@@ -408,6 +494,13 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     queryset = Announcement.objects.all()
     serializer_class = AnnouncementSerializer
     
+    def get_queryset(self):
+        queryset = Announcement.objects.all()
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        return queryset.order_by('-published_at')
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -415,6 +508,13 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 class ServiceRequestViewSet(viewsets.ModelViewSet):
     queryset = ServiceRequest.objects.all()
     serializer_class = ServiceRequestSerializer
+    
+    def get_queryset(self):
+        queryset = ServiceRequest.objects.all()
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        return queryset.order_by('-created_at')
     
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
@@ -516,3 +616,330 @@ class ChangePasswordView(APIView):
         user.save()
         return Response({'message': 'Password changed successfully'})
 
+
+# ============================================================================
+# MIZAN LEDGER VIEWSETS
+# ============================================================================
+
+class LedgerViewSet(viewsets.ModelViewSet):
+    """Chart of Accounts management."""
+    queryset = Ledger.objects.filter(parent=None, is_active=True)  # Only top-level by default
+    serializer_class = LedgerSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        queryset = Ledger.objects.filter(is_active=True)
+        account_type = self.request.query_params.get('type')
+        flat = self.request.query_params.get('flat')
+        
+        if account_type:
+            queryset = queryset.filter(account_type=account_type)
+        
+        # Flat list for dropdowns
+        if flat:
+            return queryset.order_by('code')
+        
+        # Hierarchical (top-level only, children via serializer)
+        return queryset.filter(parent=None).order_by('code')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.is_system:
+            return Response({'error': 'Cannot delete system accounts.'}, status=400)
+        if instance.journal_items.exists():
+            return Response({'error': 'Cannot delete account with transactions.'}, status=400)
+        instance.is_active = False
+        instance.save()
+        return Response(status=204)
+
+
+class SupplierViewSet(viewsets.ModelViewSet):
+    """Vendor/Supplier management."""
+    queryset = Supplier.objects.filter(is_active=True)
+    serializer_class = SupplierSerializer
+    permission_classes = [IsAdminUser]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.payments.exists():
+            return Response({'error': 'Cannot delete supplier with payments.'}, status=400)
+        instance.is_active = False
+        instance.save()
+        return Response(status=204)
+
+
+class JournalEntryViewSet(viewsets.ModelViewSet):
+    """Journal Entry (Voucher) management."""
+    queryset = JournalEntry.objects.all()
+    serializer_class = JournalEntrySerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        queryset = JournalEntry.objects.all()
+        voucher_type = self.request.query_params.get('type')
+        date_from = self.request.query_params.get('from')
+        date_to = self.request.query_params.get('to')
+        
+        if voucher_type:
+            queryset = queryset.filter(voucher_type=voucher_type)
+        if date_from:
+            queryset = queryset.filter(date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(date__lte=date_to)
+        
+        return queryset.order_by('-date', '-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def finalize(self, request, pk=None):
+        """Lock a journal entry to prevent further modifications."""
+        entry = self.get_object()
+        if entry.is_finalized:
+            return Response({'error': 'Already finalized.'}, status=400)
+        entry.is_finalized = True
+        entry.save()
+        return Response({'message': 'Entry finalized successfully.'})
+
+
+class LedgerReportsView(APIView):
+    """Ledger reports: Day Book, Trial Balance."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, report_type):
+        from django.db.models import Sum
+
+        if report_type == 'day-book':
+            date = request.query_params.get('date', timezone.now().date().isoformat())
+            entries = JournalEntry.objects.filter(date=date).order_by('created_at')
+            return Response({
+                'date': date,
+                'entries': JournalEntrySerializer(entries, many=True).data,
+                'summary': {
+                    'total_receipts': entries.filter(voucher_type='RECEIPT').aggregate(
+                        total=Sum('items__credit_amount'))['total'] or 0,
+                    'total_payments': entries.filter(voucher_type='PAYMENT').aggregate(
+                        total=Sum('items__debit_amount'))['total'] or 0,
+                }
+            })
+
+        elif report_type == 'trial-balance':
+            ledgers = Ledger.objects.filter(is_active=True).order_by('code')
+            data = []
+            total_debit = Decimal('0.00')
+            total_credit = Decimal('0.00')
+            
+            for ledger in ledgers:
+                balance = ledger.balance
+                if balance > 0:
+                    if ledger.account_type in ['ASSET', 'EXPENSE']:
+                        total_debit += balance
+                        data.append({'code': ledger.code, 'name': ledger.name, 'debit': balance, 'credit': 0})
+                    else:
+                        total_credit += balance
+                        data.append({'code': ledger.code, 'name': ledger.name, 'debit': 0, 'credit': balance})
+                elif balance < 0:
+                    if ledger.account_type in ['ASSET', 'EXPENSE']:
+                        total_credit += abs(balance)
+                        data.append({'code': ledger.code, 'name': ledger.name, 'debit': 0, 'credit': abs(balance)})
+                    else:
+                        total_debit += abs(balance)
+                        data.append({'code': ledger.code, 'name': ledger.name, 'debit': abs(balance), 'credit': 0})
+            
+            return Response({
+                'ledgers': data,
+                'total_debit': total_debit,
+                'total_credit': total_credit,
+                'is_balanced': total_debit == total_credit
+            })
+
+        return Response({'error': 'Invalid report type'}, status=400)
+
+
+class TallyExportView(APIView):
+    """Export financial data to Tally-compatible Excel format."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        from openpyxl.utils import get_column_letter
+        from django.http import HttpResponse
+        import io
+
+        # Get date range from query params (default: current financial year Apr-Mar)
+        year = request.query_params.get('year')
+        if year:
+            year = int(year)
+        else:
+            today = timezone.now().date()
+            year = today.year if today.month >= 4 else today.year - 1
+        
+        start_date = f"{year}-04-01"
+        end_date = f"{year + 1}-03-31"
+
+        # Fetch all journal entries in date range
+        entries = JournalEntry.objects.filter(
+            date__gte=start_date,
+            date__lte=end_date
+        ).prefetch_related('items__ledger', 'donor').order_by('date', 'voucher_number')
+
+        # Create workbook
+        wb = Workbook()
+        
+        # ========== Tab 1: All Transactions ==========
+        ws1 = wb.active
+        ws1.title = "Journal Entries"
+        
+        # Header styling
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="2B579A", end_color="2B579A", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+
+        # Headers
+        headers = [
+            "Date", "Voucher_Type", "Voucher_Number", "Ledger_Code", "Ledger_Name",
+            "Fund_Category", "Debit", "Credit", "Narration", "Payment_Mode",
+            "Donor_Name", "Donor_PAN", "Supplier_Name", "Invoice_No"
+        ]
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws1.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+            cell.border = thin_border
+
+        # Data rows
+        row_num = 2
+        for entry in entries:
+            for item in entry.items.all():
+                # Format date as DD-MM-YYYY
+                formatted_date = entry.date.strftime("%d-%m-%Y")
+                
+                donor_name = ""
+                donor_pan = ""
+                if entry.donor:
+                    donor_name = entry.donor.full_name
+                elif entry.donor_name_manual:
+                    donor_name = entry.donor_name_manual
+                donor_pan = entry.donor_pan or ""
+                
+                supplier_name = entry.supplier.name if entry.supplier else ""
+                
+                row_data = [
+                    formatted_date,
+                    entry.voucher_type,
+                    entry.voucher_number,
+                    item.ledger.code,
+                    item.ledger.name,
+                    item.ledger.fund_type or "GENERAL",
+                    float(item.debit_amount) if item.debit_amount > 0 else "",
+                    float(item.credit_amount) if item.credit_amount > 0 else "",
+                    entry.narration,
+                    entry.payment_mode,
+                    donor_name,
+                    donor_pan,
+                    supplier_name,
+                    entry.vendor_invoice_no or ""
+                ]
+                
+                for col, value in enumerate(row_data, 1):
+                    cell = ws1.cell(row=row_num, column=col, value=value)
+                    cell.border = thin_border
+                
+                row_num += 1
+
+        # Auto-adjust column widths
+        for col in range(1, len(headers) + 1):
+            ws1.column_dimensions[get_column_letter(col)].width = 15
+
+        # ========== Tab 2: Donor List (for Form 10BD) ==========
+        ws2 = wb.create_sheet(title="Donor List (Form 10BD)")
+        
+        donor_headers = [
+            "Sr_No", "Donor_Name", "PAN", "Phone", "Total_Donation",
+            "Donation_Type", "Address"
+        ]
+        
+        for col, header in enumerate(donor_headers, 1):
+            cell = ws2.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+            cell.border = thin_border
+
+        # Aggregate donors
+        donor_data = {}
+        for entry in entries.filter(voucher_type='RECEIPT'):
+            donor_key = None
+            donor_name = ""
+            donor_pan = ""
+            donor_phone = ""
+            
+            if entry.donor:
+                donor_key = f"member_{entry.donor.id}"
+                donor_name = entry.donor.full_name
+                donor_pan = entry.donor_pan or ""
+                donor_phone = entry.donor.household.phone_number or "" if hasattr(entry.donor, 'household') else ""
+            elif entry.donor_name_manual:
+                donor_key = f"guest_{entry.donor_name_manual}_{entry.donor_pan or 'nopan'}"
+                donor_name = entry.donor_name_manual
+                donor_pan = entry.donor_pan or ""
+            
+            if donor_key:
+                if donor_key not in donor_data:
+                    donor_data[donor_key] = {
+                        'name': donor_name,
+                        'pan': donor_pan,
+                        'phone': donor_phone,
+                        'total': Decimal('0.00'),
+                        'types': set()
+                    }
+                
+                # Add total (credit amounts for receipts)
+                for item in entry.items.filter(credit_amount__gt=0):
+                    donor_data[donor_key]['total'] += item.credit_amount
+                    if item.ledger.fund_type:
+                        donor_data[donor_key]['types'].add(item.ledger.fund_type)
+
+        # Write donor rows
+        row_num = 2
+        for idx, (key, data) in enumerate(sorted(donor_data.items(), key=lambda x: x[1]['name']), 1):
+            row = [
+                idx,
+                data['name'],
+                data['pan'],
+                data['phone'],
+                float(data['total']),
+                ", ".join(data['types']) or "GENERAL",
+                ""
+            ]
+            for col, value in enumerate(row, 1):
+                cell = ws2.cell(row=row_num, column=col, value=value)
+                cell.border = thin_border
+            row_num += 1
+
+        # Auto-adjust column widths
+        for col in range(1, len(donor_headers) + 1):
+            ws2.column_dimensions[get_column_letter(col)].width = 18
+
+        # Generate response
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        filename = f"Mizan_Export_FY{year}-{year+1}.xlsx"
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response

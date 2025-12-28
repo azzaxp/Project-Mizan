@@ -19,12 +19,9 @@ export function SiteHeader() {
                         GitHub
                     </Link>
                     <div className="h-4 w-px bg-gray-300 mx-2"></div>
-                    <Link className="text-sm font-medium text-gray-600 hover:text-black" href="/auth/login">
-                        Admin Login
-                    </Link>
-                    <Link href="/portal/login">
-                        <Button size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700">
-                            Member Login
+                    <Link href="/auth/find-workspace">
+                        <Button size="sm" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                            Find My Masjid
                         </Button>
                     </Link>
                 </nav>

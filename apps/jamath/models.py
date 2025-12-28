@@ -217,8 +217,13 @@ class Receipt(models.Model):
 
 class Announcement(models.Model):
     """Bulletin Board for Jamath announcements."""
+    class Status(models.TextChoices):
+        DRAFT = 'DRAFT', 'Draft'
+        PUBLISHED = 'PUBLISHED', 'Published'
+
     title = models.CharField(max_length=200)
     content = models.TextField()
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PUBLISHED)
     published_at = models.DateTimeField(default=timezone.now)
     expires_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -248,7 +253,7 @@ class ServiceRequest(models.Model):
 
     household = models.ForeignKey(Household, related_name='service_requests', on_delete=models.CASCADE)
     request_type = models.CharField(max_length=30, choices=RequestType.choices)
-    description = models.TextField(null=True, blank=True, help_text="Additional details")
+    description = models.TextField(null=True, blank=True, help_text="Detailed description of the request")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     admin_notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -283,3 +288,227 @@ class SurveyResponse(models.Model):
 
     def __str__(self):
         return f"{self.survey.title} - {self.household.id}"
+
+
+# ============================================================================
+# MIZAN LEDGER - DOUBLE-ENTRY ACCOUNTING SYSTEM
+# ============================================================================
+
+class Ledger(models.Model):
+    """Chart of Accounts - the foundation of the double-entry system."""
+    class AccountType(models.TextChoices):
+        ASSET = 'ASSET', 'Asset'
+        LIABILITY = 'LIABILITY', 'Liability'
+        INCOME = 'INCOME', 'Income'
+        EXPENSE = 'EXPENSE', 'Expense'
+        EQUITY = 'EQUITY', 'Equity/Corpus'
+
+    class FundType(models.TextChoices):
+        RESTRICTED_ZAKAT = 'ZAKAT', 'Restricted - Zakat'
+        RESTRICTED_SADAQAH = 'SADAQAH', 'Restricted - Sadaqah'
+        RESTRICTED_CONSTRUCTION = 'CONSTRUCTION', 'Restricted - Construction'
+        UNRESTRICTED_GENERAL = 'GENERAL', 'Unrestricted - General'
+
+    code = models.CharField(max_length=20, unique=True, help_text="e.g., 1001, 2001")
+    name = models.CharField(max_length=100)
+    account_type = models.CharField(max_length=20, choices=AccountType.choices)
+    fund_type = models.CharField(max_length=20, choices=FundType.choices, null=True, blank=True,
+                                  help_text="Required for Income/Expense accounts")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    is_system = models.BooleanField(default=False, help_text="System accounts cannot be deleted")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['code']
+        verbose_name = "Ledger Account"
+        verbose_name_plural = "Chart of Accounts"
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+    @property
+    def balance(self):
+        """Calculate current balance based on all journal items."""
+        from django.db.models import Sum
+        items = self.journal_items.aggregate(
+            total_debit=Sum('debit_amount'),
+            total_credit=Sum('credit_amount')
+        )
+        debit = items['total_debit'] or Decimal('0.00')
+        credit = items['total_credit'] or Decimal('0.00')
+        
+        # Assets & Expenses have debit balances; Liabilities, Income, Equity have credit balances
+        if self.account_type in [self.AccountType.ASSET, self.AccountType.EXPENSE]:
+            return debit - credit
+        return credit - debit
+
+
+class Supplier(models.Model):
+    """Vendor/Supplier Master for expense tracking."""
+    name = models.CharField(max_length=200)
+    contact_person = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
+    gstin = models.CharField(max_length=15, blank=True, help_text="GST Identification Number")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class JournalEntry(models.Model):
+    """Parent transaction record - Receipt, Payment, or Journal Voucher."""
+    class VoucherType(models.TextChoices):
+        RECEIPT = 'RECEIPT', 'Receipt Voucher'
+        PAYMENT = 'PAYMENT', 'Payment Voucher'
+        JOURNAL = 'JOURNAL', 'Journal Entry'
+
+    class PaymentMode(models.TextChoices):
+        CASH = 'CASH', 'Cash'
+        NEFT = 'NEFT', 'Bank Transfer (NEFT/IMPS)'
+        UPI = 'UPI', 'UPI'
+        CHEQUE = 'CHEQUE', 'Cheque'
+
+    voucher_number = models.CharField(max_length=50, unique=True, help_text="e.g., RCP-2025-001")
+    voucher_type = models.CharField(max_length=20, choices=VoucherType.choices)
+    date = models.DateField()
+    narration = models.TextField(help_text="Description of the transaction")
+
+    # Receipt Voucher Fields (Donor Info)
+    donor = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='donations', help_text="For Receipt vouchers")
+    donor_name_manual = models.CharField(max_length=200, blank=True, help_text="For guest donors")
+    donor_pan = models.CharField(max_length=10, blank=True, help_text="Required for amounts > ₹2000")
+    donor_intent = models.TextField(blank=True, help_text="Specific direction like 'For buying fans only'")
+
+    # Payment Voucher Fields (Vendor Info)
+    supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name='payments', help_text="For Payment vouchers")
+    vendor_invoice_no = models.CharField(max_length=50, blank=True)
+    vendor_invoice_date = models.DateField(null=True, blank=True)
+    proof_document = models.FileField(upload_to='vouchers/proofs/', null=True, blank=True,
+                                       help_text="Required for amounts > ₹500")
+
+    # Payment Mode
+    payment_mode = models.CharField(max_length=20, choices=PaymentMode.choices, default=PaymentMode.CASH)
+
+    # Audit & Lock
+    is_finalized = models.BooleanField(default=False, help_text="Locked entries cannot be modified")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                    related_name='journal_entries')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        verbose_name = "Journal Entry"
+        verbose_name_plural = "Journal Entries"
+
+    def __str__(self):
+        return f"{self.voucher_number} - {self.get_voucher_type_display()}"
+
+    @property
+    def total_amount(self):
+        """Total transaction amount (sum of debits or credits)."""
+        from django.db.models import Sum
+        return self.items.aggregate(total=Sum('debit_amount'))['total'] or Decimal('0.00')
+
+    def clean(self):
+        """Validate double-entry balance and fund restrictions."""
+        from django.core.exceptions import ValidationError
+        
+        # Skip validation if no items yet (during creation)
+        if not self.pk:
+            return
+            
+        items = self.items.all()
+        if not items.exists():
+            return
+
+        total_debit = sum(item.debit_amount for item in items)
+        total_credit = sum(item.credit_amount for item in items)
+
+        # Rule 1: Debits must equal Credits
+        if total_debit != total_credit:
+            raise ValidationError(f"Debits (₹{total_debit}) must equal Credits (₹{total_credit})")
+
+        # Rule 2: Fund Restriction Enforcement
+        for item in items:
+            if item.debit_amount > 0 and item.ledger.account_type == Ledger.AccountType.EXPENSE:
+                # This is an expense - check if funded by restricted fund
+                credit_items = [i for i in items if i.credit_amount > 0]
+                for credit_item in credit_items:
+                    source_fund = credit_item.ledger.fund_type
+                    expense_fund = item.ledger.fund_type
+                    
+                    # Zakat funds can only be used for Zakat expenses
+                    if source_fund == Ledger.FundType.RESTRICTED_ZAKAT:
+                        if expense_fund != Ledger.FundType.RESTRICTED_ZAKAT:
+                            raise ValidationError(
+                                f"Compliance Violation: Cannot use Zakat funds for {item.ledger.name}. "
+                                "Zakat funds can only be used for Zakat-eligible expenses."
+                            )
+
+    def save(self, *args, **kwargs):
+        # Auto-generate voucher number if not set
+        if not self.voucher_number:
+            self.voucher_number = self._generate_voucher_number()
+        super().save(*args, **kwargs)
+
+    def _generate_voucher_number(self):
+        """Generate unique voucher number like RCP-2025-001."""
+        import datetime
+        prefix_map = {
+            self.VoucherType.RECEIPT: 'RCP',
+            self.VoucherType.PAYMENT: 'PAY',
+            self.VoucherType.JOURNAL: 'JRN',
+        }
+        prefix = prefix_map.get(self.voucher_type, 'TXN')
+        year = datetime.date.today().year
+
+        # Find max number for this type/year
+        existing = JournalEntry.objects.filter(
+            voucher_number__startswith=f"{prefix}-{year}-"
+        ).values_list('voucher_number', flat=True)
+
+        max_num = 0
+        for vn in existing:
+            try:
+                num = int(vn.split('-')[-1])
+                if num > max_num:
+                    max_num = num
+            except (ValueError, IndexError):
+                continue
+
+        return f"{prefix}-{year}-{max_num + 1:03d}"
+
+
+class JournalItem(models.Model):
+    """Individual line item in a journal entry (debit or credit line)."""
+    journal_entry = models.ForeignKey(JournalEntry, related_name='items', on_delete=models.CASCADE)
+    ledger = models.ForeignKey(Ledger, on_delete=models.PROTECT, related_name='journal_items')
+    debit_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    credit_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    particulars = models.CharField(max_length=200, blank=True, help_text="Additional line description")
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        if self.debit_amount > 0:
+            return f"Dr. {self.ledger.name}: ₹{self.debit_amount}"
+        return f"Cr. {self.ledger.name}: ₹{self.credit_amount}"
+
+    def clean(self):
+        """Validate that only one of debit/credit is set."""
+        from django.core.exceptions import ValidationError
+        if self.debit_amount > 0 and self.credit_amount > 0:
+            raise ValidationError("A line item cannot have both debit and credit amounts.")
+        if self.debit_amount == 0 and self.credit_amount == 0:
+            raise ValidationError("Either debit or credit amount must be specified.")
+

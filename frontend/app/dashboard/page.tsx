@@ -111,18 +111,11 @@ export default function DashboardPage() {
 
     return (
         <div className="space-y-6">
-            {/* Masjid Name Header */}
-            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white">
-                <Building2 className="h-8 w-8" />
-                <div>
-                    <h2 className="text-xl font-bold">{masjidName || "Loading..."}</h2>
-                    <p className="text-sm text-blue-100">Dashboard Overview</p>
-                </div>
-            </div>
-
+            {/* Welcome Header */}
             <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
                 <p className="text-gray-500 dark:text-gray-400">
-                    Welcome back! Here's what's happening with your community.
+                    Welcome back! Here&apos;s what&apos;s happening with your community.
                 </p>
             </div>
 

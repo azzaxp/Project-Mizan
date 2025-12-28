@@ -15,32 +15,45 @@ import {
     Menu,
     X,
     LogOut,
-    ChevronDown
+    ChevronDown,
+    Inbox,
+    Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfigProvider, useConfig } from "@/context/ConfigContext";
 
-const navigation = [
+const defaultNavigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Jamath (Families)", href: "/dashboard/households", icon: Users },
-    { name: "Baitul Maal (Finance)", href: "/dashboard/finance", icon: DollarSign },
+    { name: "Inbox", href: "/dashboard/inbox", icon: Inbox },
+    { name: "Households", href: "/dashboard/households", icon: Users, id: 'households' },
+    { name: "Finance", href: "/dashboard/finance", icon: DollarSign, id: 'finance' },
     { name: "Surveys / Tahqeeq", href: "/dashboard/surveys", icon: ClipboardCheck },
+    { name: "Announcements", href: "/dashboard/announcements", icon: Megaphone },
     { name: "Welfare (Khidmat)", href: "/dashboard/welfare", icon: Heart },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
     { name: "Staff (Zimmedar)", href: "/dashboard/users", icon: UserCog },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardInner({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const { config } = useConfig();
 
     const handleLogout = () => {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         router.push("/auth/login");
     };
+
+    const navigation = defaultNavigation.map(item => {
+        if (item.id === 'households' && config?.household_label) {
+            return { ...item, name: `Jamath (${config.household_label})` };
+        }
+        return item;
+    });
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950">
@@ -62,7 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="flex flex-col h-full">
                     {/* Logo */}
                     <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-800">
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent truncate">
                             Project Mizan
                         </h1>
                         <Button
@@ -85,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                             return (
                                 <Link
-                                    key={item.name}
+                                    key={item.href}
                                     href={item.href}
                                     onClick={() => setSidebarOpen(false)}
                                     className={`
@@ -159,7 +172,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         >
                             <Menu className="h-5 w-5" />
                         </Button>
-                        <div className="flex-1" />
+                        <div className="flex-1 flex items-center">
+                            {config?.masjid_name && (
+                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 hidden lg:block">
+                                    {config.masjid_name}
+                                </h2>
+                            )}
+                        </div>
                     </div>
                 </header>
 
@@ -170,5 +189,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             </div>
         </div>
+    );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <ConfigProvider>
+            <DashboardInner>
+                {children}
+            </DashboardInner>
+        </ConfigProvider>
     );
 }

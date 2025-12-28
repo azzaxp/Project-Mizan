@@ -16,7 +16,10 @@ from apps.jamath.api import (
     # Admin
     AdminPendingMembersView, AdminMembershipConfigView,
     # User Profile
-    UserProfileView, ChangeEmailView, ChangePasswordView
+    UserProfileView, ChangeEmailView, ChangePasswordView,
+    # Mizan Ledger
+    LedgerViewSet, SupplierViewSet, JournalEntryViewSet, LedgerReportsView,
+    TallyExportView
 )
 
 from apps.welfare.api import VolunteerViewSet, GrantApplicationViewSet
@@ -39,6 +42,11 @@ router.register(r'jamath/surveys', SurveyViewSet)
 router.register(r'jamath/responses', SurveyResponseViewSet)
 router.register(r'jamath/announcements', AnnouncementViewSet)
 router.register(r'jamath/service-requests', ServiceRequestViewSet)
+
+# Mizan Ledger (Double-Entry Accounting)
+router.register(r'ledger/accounts', LedgerViewSet)
+router.register(r'ledger/suppliers', SupplierViewSet)
+router.register(r'ledger/journal-entries', JournalEntryViewSet)
 
 # Welfare
 router.register(r'welfare/volunteers', VolunteerViewSet)
@@ -79,6 +87,9 @@ urlpatterns = [
     path('api/user/change-email/', ChangeEmailView.as_view(), name='change-email'),
     path('api/user/change-password/', ChangePasswordView.as_view(), name='change-password'),
 
+    # Mizan Ledger Reports
+    path('api/ledger/reports/<str:report_type>/', LedgerReportsView.as_view(), name='ledger-reports'),
+    path('api/ledger/export/', TallyExportView.as_view(), name='ledger-export'),
     
     # REST API Router
     path('api/', include(router.urls)),

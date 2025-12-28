@@ -60,7 +60,7 @@ export default function FindWorkspacePage() {
         <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Find Your Workspace</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center">Find Your Masjid</CardTitle>
                     <CardDescription className="text-center">
                         Enter your email to find your Masjid's login URL.
                     </CardDescription>
@@ -81,14 +81,14 @@ export default function FindWorkspacePage() {
                             </div>
                             {error && <div className="text-red-500 text-sm">{error}</div>}
                             <Button className="w-full" type="submit" disabled={isLoading}>
-                                {isLoading ? "Searching..." : "Find Workspace"}
+                                {isLoading ? "Searching..." : "Find Masjid"}
                             </Button>
                         </form>
                     ) : (
                         <div className="space-y-4">
                             {workspaces && workspaces.length > 0 ? (
                                 <div className="space-y-2">
-                                    <p className="text-sm text-green-600 font-medium text-center">Found {workspaces.length} workspace(s):</p>
+                                    <p className="text-sm text-green-600 font-medium text-center">Found {workspaces.length} masjid(s):</p>
                                     <div className="grid gap-2">
                                         {workspaces.map((ws) => (
                                             <a
@@ -104,7 +104,7 @@ export default function FindWorkspacePage() {
                                 </div>
                             ) : (
                                 <div className="text-center space-y-4">
-                                    <p className="text-sm text-gray-500">No workspaces found for this email.</p>
+                                    <p className="text-sm text-gray-500">No masjids found for this email.</p>
                                     <Button variant="outline" onClick={() => setSearched(false)} className="w-full">
                                         Try another email
                                     </Button>

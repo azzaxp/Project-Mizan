@@ -57,7 +57,7 @@ export default function RegisterPage() {
             // Success: Redirect to success page or login
             // Ideally we show the user their new URL
             // For now, let's redirect to login for simplicity
-            alert(`Workspace created! Use ${result.tenant_url} to access.`);
+            alert(`Masjid account created! Use ${result.tenant_url} to access.`);
             router.push("/auth/login"); // Or redirect to tenant URL? 
 
         } catch (err) {
@@ -73,7 +73,7 @@ export default function RegisterPage() {
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center">Register your Masjid</CardTitle>
                     <CardDescription className="text-center">
-                        Create a new tenant workspace for your community.
+                        Create a new Masjid workspace / account for your community.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -99,7 +99,7 @@ export default function RegisterPage() {
                         </div>
                         {error && <div className="text-red-500 text-sm">{error}</div>}
                         <Button className="w-full" type="submit" disabled={isLoading}>
-                            {isLoading ? "Creating..." : "Create Workspace"}
+                            {isLoading ? "Creating..." : "Create Masjid Account"}
                         </Button>
                         <div className="text-center text-sm text-gray-500">
                             Already registered?{" "}

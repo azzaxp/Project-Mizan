@@ -14,6 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { fetchWithAuth } from "@/lib/api";
 import {
     Select,
     SelectContent,
@@ -69,16 +70,7 @@ export default function HouseholdsPage() {
     useEffect(() => {
         async function fetchHouseholds() {
             try {
-                const token = localStorage.getItem("access_token");
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const apiBase = `${protocol}//${hostname}:8000`;
-
-                const res = await fetch(`${apiBase}/api/jamath/households/`, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
+                const res = await fetchWithAuth('/api/jamath/households/');
 
                 if (!res.ok) {
                     const text = await res.text();

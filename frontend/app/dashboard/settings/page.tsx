@@ -15,8 +15,11 @@ import {
 } from "@/components/ui/select";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Settings, Save, Loader2, DollarSign, Hash, Calendar, CheckCircle } from "lucide-react";
+import { useConfig } from "@/context/ConfigContext";
+import { fetchWithAuth } from "@/lib/api";
 
 export default function SettingsPage() {
+    const { refreshConfig } = useConfig();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -41,14 +44,7 @@ export default function SettingsPage() {
 
     const fetchSettings = async () => {
         try {
-            const token = localStorage.getItem("access_token");
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
-
-            const res = await fetch(`${apiBase}/api/admin/membership-config/`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
+            const res = await fetchWithAuth('/api/admin/membership-config/');
 
             if (res.ok) {
                 const data = await res.json();
@@ -60,8 +56,6 @@ export default function SettingsPage() {
                 setHouseholdLabel(data.household_label || "Gharane");
                 setMemberLabel(data.member_label || "Afrad");
             }
-
-
         } catch (err) {
             console.error("Failed to fetch settings", err);
         } finally {
@@ -74,17 +68,8 @@ export default function SettingsPage() {
         setSaveSuccess(false);
 
         try {
-            const token = localStorage.getItem("access_token");
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
-
-            const res = await fetch(`${apiBase}/api/admin/membership-config/`, {
+            const res = await fetchWithAuth('/api/admin/membership-config/', {
                 method: "PUT",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify({
                     cycle: membershipCycle,
                     minimum_fee: parseFloat(minimumFee),
@@ -94,12 +79,11 @@ export default function SettingsPage() {
                     household_label: householdLabel,
                     member_label: memberLabel
                 })
-
-
             });
 
             if (res.ok) {
                 setSaveSuccess(true);
+                refreshConfig();
                 setTimeout(() => setSaveSuccess(false), 3000);
             }
         } catch (err) {
