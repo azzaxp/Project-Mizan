@@ -1,17 +1,14 @@
+import { getApiBaseUrl } from "@/lib/config";
 
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     // 1. Construct Full URL if relative
     let fullUrl = url;
+    const apiBase = getApiBaseUrl();
+
     if (url.startsWith('/')) {
-        const protocol = window.location.protocol;
-        const hostname = window.location.hostname;
-        const apiBase = `${protocol}//${hostname}:8000`;
         fullUrl = `${apiBase}${url}`;
     } else if (!url.startsWith('http')) {
         // Assume it's a relative path meant for API
-        const protocol = window.location.protocol;
-        const hostname = window.location.hostname;
-        const apiBase = `${protocol}//${hostname}:8000`;
         fullUrl = `${apiBase}${url}`;
     }
 
@@ -49,10 +46,6 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
             }
 
             // Attempt Refresh
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
-
             const refreshRes = await fetch(`${apiBase}/api/token/refresh/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

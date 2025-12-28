@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getApiBaseUrl } from "@/lib/config";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, ShieldCheck } from "lucide-react";
 
@@ -14,16 +15,8 @@ export function TenantLanding() {
         // Fetch Tenant Info
         const fetchTenantInfo = async () => {
             try {
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const apiBase = `${protocol}//${hostname}:8000`;
-
-                // If running via docker internal networking or port forwarding, API might be on different port
-                // In production, we expect Nginx to route /api/ requests correctly
-                // So we can just use relative path if on same domain, or configurable URL
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL
-                    ? `${process.env.NEXT_PUBLIC_API_URL}/api/tenant-info/`
-                    : '/api/tenant-info/';
+                const apiBase = getApiBaseUrl();
+                const apiUrl = `${apiBase}/api/tenant-info/`;
 
                 const res = await fetch(apiUrl);
                 if (res.ok) {

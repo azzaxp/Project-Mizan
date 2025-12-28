@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from '@/lib/config';
 "use client";
 
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from '@/lib/config';
 "use client";
 
 import { useEffect, useState } from "react";
