@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -26,9 +27,9 @@ export default function DashboardPage() {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
                 };
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const apiBase = `${protocol}//${hostname}:8000`;
+                
+                
+                const apiBase = getApiBaseUrl();
 
                 // Extract masjid name from subdomain
                 const subdomain = hostname.split('.')[0];

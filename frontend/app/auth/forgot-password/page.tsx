@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,9 +22,9 @@ export default function ForgotPasswordPage() {
 
         try {
             // Determine API Base URL
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
 
             const response = await fetch(`${apiBase}/api/auth/password-reset-request/`, {
                 method: "POST",

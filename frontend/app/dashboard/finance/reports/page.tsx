@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -59,9 +60,9 @@ export default function ReportsPage() {
         setIsExporting(true);
         try {
             const token = localStorage.getItem("access_token");
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
 
             const response = await fetch(`${apiBase}/api/ledger/export/?year=${exportYear}`, {
                 headers: { Authorization: `Bearer ${token}` }

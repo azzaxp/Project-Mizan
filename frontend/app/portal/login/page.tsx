@@ -21,9 +21,9 @@ export default function PortalLoginPage() {
         // Fetch Tenant Info
         const fetchTenantInfo = async () => {
             try {
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const apiBase = `${protocol}//${hostname}:8000`;
+                
+                
+                const apiBase = getApiBaseUrl();
 
                 const res = await fetch(`${apiBase}/api/tenant-info/`);
                 if (res.ok) {
@@ -45,9 +45,9 @@ export default function PortalLoginPage() {
         setError("");
 
         try {
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
 
             const res = await fetch(`${apiBase}/api/portal/request-otp/`, {
                 method: "POST",
@@ -75,9 +75,9 @@ export default function PortalLoginPage() {
         setError("");
 
         try {
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
 
             const res = await fetch(`${apiBase}/api/portal/verify-otp/`, {
                 method: "POST",

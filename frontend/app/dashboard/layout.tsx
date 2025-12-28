@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -65,9 +66,9 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
         async function fetchPendingCount() {
             try {
                 const token = localStorage.getItem("access_token");
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const apiBase = `${protocol}//${hostname}:8000`;
+                
+                
+                const apiBase = getApiBaseUrl();
 
                 const res = await fetch(`${apiBase}/api/jamath/service-requests/?status=PENDING`, {
                     headers: { Authorization: `Bearer ${token}` }

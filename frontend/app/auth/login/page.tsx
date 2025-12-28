@@ -35,9 +35,7 @@ export default function LoginPage() {
 
         try {
             // Determine API Base URL
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`; // Direct to Backend
+            const apiBase = getApiBaseUrl();
 
             const response = await fetch(`${apiBase}/api/token/`, {
                 method: "POST",

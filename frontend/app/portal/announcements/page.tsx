@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,9 +30,9 @@ export default function PortalAnnouncementsPage() {
 
     const fetchAnnouncements = async (token: string) => {
         try {
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
 
             const res = await fetch(`${apiBase}/api/portal/announcements/`, {
                 headers: { "Authorization": `Bearer ${token}` }

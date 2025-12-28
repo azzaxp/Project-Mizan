@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Loader2, Sparkles, HelpCircle } from "lucide-react";
+import { getApiBaseUrl } from "@/lib/config";
 
 type Message = {
     role: "user" | "assistant";
@@ -45,9 +46,7 @@ export default function BasiraChat() {
 
         try {
             const token = localStorage.getItem("access_token");
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            const apiBase = getApiBaseUrl();
 
             const response = await fetch(`${apiBase}/api/basira/`, {
                 method: "POST",
@@ -188,8 +187,8 @@ export default function BasiraChat() {
                                     >
                                         <div
                                             className={`max-w-[80%] px-4 py-2 rounded-2xl ${msg.role === "user"
-                                                    ? "bg-emerald-500 text-white rounded-br-md"
-                                                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-md"
+                                                ? "bg-emerald-500 text-white rounded-br-md"
+                                                : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-md"
                                                 }`}
                                         >
                                             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>

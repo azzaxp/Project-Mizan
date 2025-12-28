@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -24,9 +25,9 @@ export default function HouseholdDetailsPage() {
             try {
                 const token = localStorage.getItem("access_token");
                 const headers = { "Authorization": `Bearer ${token}` };
-                const protocol = window.location.protocol;
-                const hostname = window.location.hostname;
-                const apiBase = `${protocol}//${hostname}:8000`;
+                
+                
+                const apiBase = getApiBaseUrl();
 
                 // Fetch Household with Members
                 const hhRes = await fetch(`${apiBase}/api/jamath/households/${params.id}/`, { headers });

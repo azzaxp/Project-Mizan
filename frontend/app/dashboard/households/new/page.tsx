@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -106,9 +107,9 @@ export default function NewHouseholdPage() {
 
         try {
             const token = localStorage.getItem("access_token");
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
 
             // Create household
             const hhRes = await fetch(`${apiBase}/api/jamath/households/`, {

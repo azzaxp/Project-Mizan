@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,9 +32,9 @@ export default function ProfilePage() {
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const getApiBase = () => {
-        const protocol = window.location.protocol;
-        const hostname = window.location.hostname;
-        return `${protocol}//${hostname}:8000`;
+        
+        
+        return getApiBaseUrl();
     };
 
     useEffect(() => {

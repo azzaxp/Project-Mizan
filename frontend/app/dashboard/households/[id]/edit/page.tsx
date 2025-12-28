@@ -1,4 +1,5 @@
 "use client";
+import { getApiBaseUrl } from "@/lib/config";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -74,9 +75,9 @@ export default function EditHouseholdPage() {
     const fetchHousehold = async () => {
         try {
             const token = localStorage.getItem("access_token");
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
 
             const res = await fetch(`${apiBase}/api/jamath/households/${householdId}/`, {
                 headers: { "Authorization": `Bearer ${token}` }
@@ -162,9 +163,9 @@ export default function EditHouseholdPage() {
 
         try {
             const token = localStorage.getItem("access_token");
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const apiBase = `${protocol}//${hostname}:8000`;
+            
+            
+            const apiBase = getApiBaseUrl();
             const headers = {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
