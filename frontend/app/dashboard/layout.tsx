@@ -193,7 +193,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
                         </div>
                     </div>
                     <div className="px-4 py-2 text-xs text-center text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
-                        v0.3 Alpha • Project Mizan
+                        v0.4 Alpha • Project Mizan
                     </div>
                 </div>
             </aside>

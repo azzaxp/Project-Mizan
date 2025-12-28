@@ -203,7 +203,7 @@ export default function PortalLoginPage() {
                 </CardContent>
             </Card>
             <div className="absolute bottom-4 text-xs text-gray-400">
-                v0.3 Alpha • Project Mizan
+                v0.4 Alpha • Project Mizan
             </div>
         </div>
     );
