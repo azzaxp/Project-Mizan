@@ -194,8 +194,8 @@ export default function HelpPage() {
                                 {messages.map((msg, idx) => (
                                     <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                                         <div className={`max-w-[80%] px-4 py-2 rounded-2xl ${msg.role === "user"
-                                                ? "bg-emerald-500 text-white"
-                                                : "bg-gray-100 text-gray-800"
+                                            ? "bg-emerald-500 text-white"
+                                            : "bg-gray-100 text-gray-800"
                                             }`}>
                                             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                                         </div>
@@ -292,7 +292,7 @@ export default function HelpPage() {
 
             {/* Version Info */}
             <div className="text-center text-sm text-gray-400 pt-4 border-t">
-                <p>DigitalJamath v0.2-alpha • Basira AI Guide powered by OpenRouter</p>
+                <p>DigitalJamath v1.0.1-alpha • Basira AI Guide powered by OpenRouter</p>
             </div>
         </div>
     );
