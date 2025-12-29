@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 
 export function SiteHeader() {
     return (
@@ -10,6 +12,8 @@ export function SiteHeader() {
                     <Image src="/logo.png" alt="DigitalJamath Logo" width={32} height={32} className="h-8 w-8" />
                     DigitalJamath
                 </Link>
+
+                {/* Desktop Navigation */}
                 <nav className="hidden md:flex gap-6 items-center">
                     <Link className="text-sm font-medium hover:text-blue-600 transition-colors" href="/about">
                         About
@@ -27,6 +31,37 @@ export function SiteHeader() {
                         </Button>
                     </Link>
                 </nav>
+
+                {/* Mobile Navigation */}
+                <div className="md:hidden">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <Menu className="h-6 w-6" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="right">
+                            <nav className="flex flex-col gap-4 mt-8">
+                                <Link className="text-lg font-medium hover:text-blue-600 transition-colors" href="/about">
+                                    About
+                                </Link>
+                                <Link className="text-lg font-medium hover:text-blue-600 transition-colors" href="/#features">
+                                    Features
+                                </Link>
+                                <Link className="text-lg font-medium hover:text-blue-600 transition-colors" href="https://github.com/azzaxp/digitaljamath" target="_blank">
+                                    GitHub
+                                </Link>
+                                <hr className="my-2" />
+                                <Link href="/auth/find-workspace">
+                                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                                        Find My Masjid
+                                    </Button>
+                                </Link>
+                            </nav>
+                        </SheetContent>
+                    </Sheet>
+                </div>
             </div>
         </header>
     );
