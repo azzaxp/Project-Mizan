@@ -12,6 +12,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Build arguments
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_DOMAIN_SUFFIX
+ARG NEXT_PUBLIC_BASE_DOMAIN
+
 # Build the application
 RUN npm run build
 
