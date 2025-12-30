@@ -96,11 +96,16 @@ export default function SignInPage() {
                         <Image src="/logo.png" alt="DigitalJamath Logo" width={32} height={32} className="h-8 w-8" />
                         DigitalJamath
                     </Link>
-                    {tenantName && (
-                        <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                            {tenantName}
-                        </span>
-                    )}
+                    <div className="flex items-center gap-4">
+                        {tenantName && (
+                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                                {tenantName}
+                            </span>
+                        )}
+                        <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+                            ← Back
+                        </Link>
+                    </div>
                 </div>
             </header>
 
