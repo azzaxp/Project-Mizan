@@ -154,14 +154,26 @@ docker exec -it digitaljamath_db psql -U postgres -d digitaljamath_db -c "SELECT
 
 Copy `.env.example` to `.env` and configure:
 
+### Backend Environment Variables
+
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `SECRET_KEY` | Django secret (random string) | `abc123xyz...` |
 | `DEBUG` | Debug mode (False for prod) | `False` |
-| `DOMAIN_NAME` | Your domain | `digitaljamath.com` |
+| `DOMAIN_NAME` | Your base domain for tenants | `digitaljamath.com` |
 | `ALLOWED_HOSTS` | Allowed hosts | `.digitaljamath.com` |
 | `DATABASE_PASSWORD` | Postgres password | `YourStrongPassword` |
 | `BREVO_SMTP_KEY` | Email API key | `xkeysib-...` |
+
+### Frontend Environment Variables (Optional)
+
+These are auto-detected from the browser hostname if not set:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_DOMAIN_SUFFIX` | Domain shown in registration | `digitaljamath.com` |
+| `NEXT_PUBLIC_BASE_DOMAIN` | Base domain for login checks | `digitaljamath.com` |
+| `NEXT_PUBLIC_API_URL` | API base URL (if different) | `https://api.domain.com` |
 
 > ⚠️ **Never commit `.env` to version control!**
 
