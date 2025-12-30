@@ -142,7 +142,19 @@ SIMPLE_JWT = {
 }
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True # For Development Only
+# CORS Configuration
+# CORS_ALLOW_ALL_ORIGINS = True # Too permissive for production with credentials
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://digitaljamath.com",
+]
+
+# Allow all subdomains (e.g. demo.digitaljamath.com)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.digitaljamath\.com$",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # Email Configuration - Brevo SMTP
