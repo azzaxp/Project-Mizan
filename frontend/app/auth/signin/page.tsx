@@ -15,11 +15,16 @@ export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [tenantName, setTenantName] = useState<string>("");
+    const [mainLoginUrl, setMainLoginUrl] = useState<string>("/auth/login");
 
     // Get tenant name from subdomain and redirect if on main domain
     useEffect(() => {
         const hostname = window.location.hostname;
         const baseDomain = getBaseDomain();
+        const protocol = window.location.protocol;
+
+        // Set the main login URL for "switch workspace" link
+        setMainLoginUrl(`${protocol}//${baseDomain}/auth/login`);
 
         // Check if it's the main domain (no subdomain)
         if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === baseDomain) {
@@ -123,7 +128,7 @@ export default function SignInPage() {
                                 </div>
                                 <div className="pt-2 border-t">
                                     <Link
-                                        href={`${typeof window !== 'undefined' ? window.location.protocol : 'https:'}//${getBaseDomain()}/auth/login`}
+                                        href={mainLoginUrl}
                                         className="text-gray-400 hover:text-gray-600 text-xs"
                                     >
                                         Not your workspace? Sign in to different workspace →
