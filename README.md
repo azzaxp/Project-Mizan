@@ -165,15 +165,9 @@ Copy `.env.example` to `.env` and configure:
 | `DATABASE_PASSWORD` | Postgres password | `YourStrongPassword` |
 | `BREVO_SMTP_KEY` | Email API key | `xkeysib-...` |
 
-### Frontend Environment Variables (Optional)
-
-These are auto-detected from the browser hostname if not set:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_DOMAIN_SUFFIX` | Domain shown in registration | `digitaljamath.com` |
-| `NEXT_PUBLIC_BASE_DOMAIN` | Base domain for login checks | `digitaljamath.com` |
-| `NEXT_PUBLIC_API_URL` | API base URL (if different) | `https://api.domain.com` |
+### Frontend Environment Variables (Auto-Configured)
+The frontend automatically configures itself based on the `DOMAIN_NAME` variable above.
+You generally **do not** need to set `NEXT_PUBLIC_` variables manually anymore.
 
 > ⚠️ **Never commit `.env` to version control!**
 

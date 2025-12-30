@@ -143,7 +143,7 @@ else
     echo "🎉 Production Setup Complete!"
     echo ""
     echo "Your app is running! Next steps:"
-    echo "  1. Configure your domain in .env (DOMAIN_NAME)"
+    echo "  1. CRITICAL: Configure 'DOMAIN_NAME' in .env (e.g., example.com)"
     echo "  2. Set up DNS (see DEPLOYMENT.md)"
     echo "  3. Visit https://your-domain.com"
     echo ""
