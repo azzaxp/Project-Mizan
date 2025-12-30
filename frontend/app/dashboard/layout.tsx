@@ -1,5 +1,6 @@
 "use client";
 import { getApiBaseUrl } from "@/lib/config";
+import { useRbac } from "@/context/RbacContext";
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -45,6 +46,7 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const { config } = useConfig();
+    const { hasPermission, isStaff } = useRbac();
 
     const handleLogout = () => {
         localStorage.removeItem("access_token");
@@ -52,7 +54,24 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
         router.push("/auth/login");
     };
 
-    const navigation = defaultNavigation.map(item => {
+    const navigation = defaultNavigation.filter(item => {
+        // Always show Dashboard
+        if (item.href === '/dashboard' || item.href === '/dashboard/inbox') return true;
+
+        // RBAC Checks
+        if (item.id === 'finance') return hasPermission('finance');
+        if (item.id === 'welfare') return hasPermission('welfare');
+
+        // Settings & Staff: Restricted to general 'settings' or 'jamath' admin? 
+        // Or assume Settings/Staff are for Super Admins only?
+        // Let's use 'settings' module for Settings page
+        if (item.name === 'Settings') return hasPermission('settings');
+
+        // Staff page: Let's require 'settings' or specific 'jamath' admin
+        if (item.name === 'Staff (Zimmedar)') return hasPermission('settings');
+
+        return true;
+    }).map(item => {
         if (item.id === 'households' && config?.household_label) {
             return { ...item, name: `Jamath (${config.household_label})` };
         }
@@ -66,8 +85,8 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
         async function fetchPendingCount() {
             try {
                 const token = localStorage.getItem("access_token");
-                
-                
+
+
                 const apiBase = getApiBaseUrl();
 
                 const res = await fetch(`${apiBase}/api/jamath/service-requests/?status=PENDING`, {
@@ -232,12 +251,16 @@ function DashboardInner({ children }: { children: React.ReactNode }) {
     );
 }
 
+import { RbacProvider } from "@/context/RbacContext";
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     return (
         <ConfigProvider>
-            <DashboardInner>
-                {children}
-            </DashboardInner>
+            <RbacProvider>
+                <DashboardInner>
+                    {children}
+                </DashboardInner>
+            </RbacProvider>
         </ConfigProvider>
     );
 }
