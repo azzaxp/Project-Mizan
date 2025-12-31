@@ -18,8 +18,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from django.http import StreamingHttpResponse
 
-from apps.jamath.models import Household, Member, Subscription
-from apps.finance.models import Transaction
+from apps.jamath.models import Household, Member, Subscription, JournalEntry, Ledger
 
 
 # =============================================================================
@@ -77,43 +76,48 @@ def get_member_stats():
 
 
 def get_financial_summary(months_back=6):
-    """Get financial summary for the last N months."""
+    """Get financial summary for the last N months using Mizan Ledger."""
     start_date = timezone.now().date() - timedelta(days=months_back * 30)
     
-    # Total income and expenses (is_expense=False means income, True means expense)
-    income = Transaction.objects.filter(
-        is_expense=False,
-        is_active=True,
-        date__gte=start_date
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    # Income (Receipt Vouchers)
+    # Sum of Credit Amounts in Receipt Vouchers (usually credits Income/Equity accounts)
+    # But usually Receipt Total = `total_amount` (which is sum of debits, equal to credits)
+    # We can just sum JournalEntry totals for Receipts.
     
-    expenses = Transaction.objects.filter(
-        is_expense=True,
-        is_active=True,
+    income = JournalEntry.objects.filter(
+        voucher_type='RECEIPT',
         date__gte=start_date
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    ).aggregate(total=Sum('items__debit_amount'))['total'] or Decimal('0')
+    
+    # Expenses (Payment Vouchers)
+    expenses = JournalEntry.objects.filter(
+        voucher_type='PAYMENT',
+        date__gte=start_date
+    ).aggregate(total=Sum('items__debit_amount'))['total'] or Decimal('0')
     
     # This month's figures
     this_month_start = timezone.now().date().replace(day=1)
-    this_month_income = Transaction.objects.filter(
-        is_expense=False,
-        is_active=True,
-        date__gte=this_month_start
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
-    this_month_expenses = Transaction.objects.filter(
-        is_expense=True,
-        is_active=True,
+    this_month_income = JournalEntry.objects.filter(
+        voucher_type='RECEIPT',
         date__gte=this_month_start
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    ).aggregate(total=Sum('items__debit_amount'))['total'] or Decimal('0')
     
-    # Top fund categories for income
-    top_income_categories = Transaction.objects.filter(
-        is_expense=False,
-        is_active=True,
+    this_month_expenses = JournalEntry.objects.filter(
+        voucher_type='PAYMENT',
+        date__gte=this_month_start
+    ).aggregate(total=Sum('items__debit_amount'))['total'] or Decimal('0')
+    
+    # Top Income Sources (Account-wise breakdown from Receipt items)
+    # We need to look at Credit items in Receipt vouchers (because Cash is Debited, Income is Credited)
+    # Filter: Voucher=Receipt, Item Credit > 0
+    top_income_categories = JournalEntry.objects.filter(
+        voucher_type='RECEIPT',
         date__gte=start_date
-    ).values('fund_category__name').annotate(
-        total=Sum('amount')
+    ).values('items__ledger__name').filter(
+        items__credit_amount__gt=0
+    ).annotate(
+        total=Sum('items__credit_amount')
     ).order_by('-total')[:5]
     
     return {
@@ -123,7 +127,7 @@ def get_financial_summary(months_back=6):
         "this_month_income": float(this_month_income),
         "this_month_expenses": float(this_month_expenses),
         "top_income_sources": [
-            {"fund": item['fund_category__name'] or "Unknown", "amount": float(item['total'])}
+            {"fund": item['items__ledger__name'] or "Unknown", "amount": float(item['total'])}
             for item in top_income_categories
         ]
     }
@@ -175,21 +179,19 @@ def search_households(query):
 
 
 def get_recent_transactions(limit=10):
-    """Get recent transactions."""
-    transactions = Transaction.objects.filter(
-        is_active=True
-    ).select_related(
-        'fund_category', 'linked_household'
-    ).order_by('-date', '-id')[:limit]
+    """Get recent transactions (Journal Entries)."""
+    # Use select_related/prefetch_related for optimization if needed, 
+    # but for just 10 items it's fine.
+    transactions = JournalEntry.objects.all().order_by('-date', '-id')[:limit]
     
     return [
         {
             "date": t.date.isoformat(),
-            "type": "Expense" if t.is_expense else "Income",
-            "amount": float(t.amount),
-            "description": t.description[:50] if t.description else "",
-            "fund": t.fund_category.name if t.fund_category else "Unknown",
-            "household": t.linked_household.membership_id if t.linked_household else None
+            "type": "Income" if t.voucher_type == 'RECEIPT' else ("Expense" if t.voucher_type == 'PAYMENT' else "Journal"),
+            "amount": float(t.total_amount),
+            "description": t.narration[:50] if t.narration else "",
+            "fund": "N/A", # Complex to determine single fund in double entry
+            "household": t.donor.full_name if t.donor else (t.donor_name_manual or "")
         }
         for t in transactions
     ]

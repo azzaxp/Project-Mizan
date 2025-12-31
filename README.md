@@ -1,6 +1,6 @@
 # DigitalJamath
 
-![Version](https://img.shields.io/badge/version-1.0.9-blue)
+![Version](https://img.shields.io/badge/version-1.1.10%20Alpha-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **DigitalJamath** is an open-source, production-grade SaaS ERP for Indian Masjids, Jamaths, and Welfare organizations. It provides a robust multi-tenant architecture to handle census data, financial management (Baitul Maal), welfare distribution, and community engagement.
@@ -11,7 +11,7 @@
 
 ---
 
-## 🆕 What's New in v1.0.9
+## 🆕 What's New in v1.1.10 Alpha
 - **Interactive Onboarding**: New wizard for registering Masjids with OTP verification and auto-provisioning.
 - **UI Refinements**: Branded registration pages, larger OTP inputs, and copy-paste support.
 - **Login Uniformity**: Standardized alignment of login inputs to match the registration flow.
@@ -134,14 +134,20 @@ docker exec -it digitaljamath_web python manage.py createsuperuser
 
 ### 3. Populate Demo Data (Optional)
 
-To test the platform with sample households, members, and transactions:
+To test the platform with sample households, members, and Mizan Ledger transactions:
 
 ```bash
 # Development
-python manage.py shell < scripts/populate_demo_data.py
+# By default, populates 'demo' schema
+python scripts/populate_demo_data.py
 
-# Docker
-docker exec -it digitaljamath_web python manage.py shell < scripts/populate_demo_data.py
+# To populate a specific tenant
+python scripts/populate_demo_data.py --schema=<your_schema_name>
+```
+
+**Docker:**
+```bash
+docker exec -it digitaljamath_web python scripts/populate_demo_data.py --schema=<your_schema_name>
 ```
 
 ### 4. List Existing Tenants

@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 # Import ViewSets
-from apps.finance.api import TransactionViewSet, BudgetViewSet, AssetViewSet, FundCategoryViewSet
+# from apps.finance.api import TransactionViewSet, BudgetViewSet, AssetViewSet, FundCategoryViewSet
 from apps.jamath.api import (
     HouseholdViewSet, MemberViewSet, SurveyViewSet, SurveyResponseViewSet,
     AnnouncementViewSet, ServiceRequestViewSet,
@@ -36,11 +36,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # Router Setup
 router = DefaultRouter()
 
-# Finance
-router.register(r'finance/transactions', TransactionViewSet)
-router.register(r'finance/budgets', BudgetViewSet)
-router.register(r'finance/assets', AssetViewSet)
-router.register(r'finance/funds', FundCategoryViewSet)
+# Finance (Legacy - Removed)
+# router.register(r'finance/transactions', TransactionViewSet)
+# router.register(r'finance/budgets', BudgetViewSet)
+# router.register(r'finance/assets', AssetViewSet)
+# router.register(r'finance/funds', FundCategoryViewSet)
 
 # Jamath
 router.register(r'jamath/households', HouseholdViewSet)

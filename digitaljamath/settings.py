@@ -33,7 +33,7 @@ TENANT_APPS = (
     'django.contrib.auth',
     'django.contrib.messages',
     'apps.jamath',
-    'apps.finance',
+    # 'apps.finance', # REMOVED
     'apps.welfare',
     'apps.basira',
 )

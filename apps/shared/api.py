@@ -318,34 +318,16 @@ class SetupTenantView(APIView):
             # Note: FundCategory import must happen inside a method or ensure app is ready
             # But since this is a shared app, it's fine.
             # However, to be safe from 'AppRegistryNotReady' if imported at top level in some configs:
-            from apps.finance.models import FundCategory
+            # from apps.finance.models import FundCategory
             
             with schema_context(schema_name):
                 # CHART OF ACCOUNTS
                 account_type = setup_data.get('accountType', 'standard')
                 if account_type == 'standard':
-                    # Seed Standard Funds
-                    defaults = [
-                        {'name': 'General Fund', 'type': FundCategory.Type.OPERATIONAL, 'source': FundCategory.Source.LOCAL},
-                        {'name': 'Maintenance Fund', 'type': FundCategory.Type.OPERATIONAL, 'source': FundCategory.Source.LOCAL},
-                        {'name': 'Salary Fund', 'type': FundCategory.Type.OPERATIONAL, 'source': FundCategory.Source.LOCAL},
-                        {'name': 'Zakat Fund', 'type': FundCategory.Type.RESTRICTED, 'source': FundCategory.Source.LOCAL},
-                        {'name': 'Sadaqah Fund', 'type': FundCategory.Type.RESTRICTED, 'source': FundCategory.Source.LOCAL},
-                        {'name': 'Construction Fund', 'type': FundCategory.Type.OPERATIONAL, 'source': FundCategory.Source.LOCAL},
-                    ]
-                    
-                    created_count = 0
-                    for item in defaults:
-                        obj, created = FundCategory.objects.get_or_create(
-                            name=item['name'],
-                            defaults={
-                                'fund_type': item['type'],
-                                'source': item['source']
-                            }
-                        )
-                        if created: created_count += 1
-                        
-                    print(f"[{schema_name}] Seeded {created_count} standard funds.")
+                    from django.core.management import call_command
+                    # Seed Mizan Ledger Chart of Accounts
+                    call_command('seed_ledger')
+                    print(f"[{schema_name}] Seeded Mizan Ledger Chart of Accounts.")
 
         except Exception as e:
             print(f"Setup Error: {e}")

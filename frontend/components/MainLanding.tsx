@@ -138,7 +138,7 @@ export function MainLanding() {
                                         <div className="text-left">
                                             <p className="text-sm font-medium text-gray-900 dark:text-white">Admin Login</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
-                                                admin / demo123
+                                                demo@digitalmasjid.com / password123
                                             </p>
                                         </div>
                                         <div className="text-right">
@@ -149,7 +149,7 @@ export function MainLanding() {
                                         </div>
                                     </div>
                                     <Button asChild size="sm" className="w-full bg-green-600 hover:bg-green-700">
-                                        <Link href={typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://demo.localhost:3000' : 'https://demo.digitaljamath.com'}>
+                                        <Link href={typeof window !== 'undefined' && window.location.hostname === 'localhost' ? `http://demo.localhost${window.location.port ? ':' + window.location.port : ''}` : 'https://demo.digitaljamath.com'}>
                                             Access Demo Portal →
                                         </Link>
                                     </Button>

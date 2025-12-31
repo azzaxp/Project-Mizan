@@ -109,13 +109,19 @@ export default function FindWorkspacePage() {
                                             {workspaces.map((ws) => (
                                                 <a
                                                     key={ws.url}
-                                                    href={ws.login_url.replace('/auth/login', '/auth/signin')}
+                                                    href={(() => {
+                                                        const url = new URL(ws.login_url.replace('/auth/login', '/auth/signin'));
+                                                        if (typeof window !== 'undefined' && window.location.hostname.includes('localhost') && url.hostname.includes('localhost')) {
+                                                            url.port = window.location.port;
+                                                        }
+                                                        return url.toString();
+                                                    })()}
                                                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                                                 >
                                                     <div>
                                                         <span className="font-medium">{ws.name}</span>
                                                         <p className="text-xs text-gray-400 mt-1">
-                                                            {ws.url.replace('http://', '').replace('https://', '').replace(':3000/', '')}
+                                                            {ws.url.replace(/^https?:\/\//, '').replace(/\/$/, '').replace(/:\d+/, '')}
                                                         </p>
                                                     </div>
                                                     <ExternalLink className="h-4 w-4 text-gray-400" />
