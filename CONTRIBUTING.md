@@ -37,8 +37,8 @@ This project is heavily assisted by AI tools (Cursor, Copilot, etc.). We encoura
    pip install -r requirements.txt
    
    # Setup Database
-   ./setup_dev.sh
-   # (Or run migrations manually if the script fails)
+   python manage.py migrate_schemas --shared
+   python manage.py runserver
    ```
 
 3. **Frontend Setup** (Next.js)
@@ -67,4 +67,4 @@ We need help in 3 main areas:
 4.  Open a Pull Request.
 
 ## Community
-Join our [Discord](#) to discuss ideas or just say Salam!
+If you'd like to join our developer community, reach out to us via email at [contribute@digitaljamath.com](mailto:contribute@digitaljamath.com).

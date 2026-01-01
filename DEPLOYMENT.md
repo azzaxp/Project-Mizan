@@ -19,14 +19,25 @@ sudo apt install -y git docker.io docker-compose
 Clone the repository and run the setup script:
 
 ```bash
+# Clone
 git clone https://github.com/azzaxp/digitaljamath.git
 cd digitaljamath
 
-# Run the One-Click Installer
+# Configure
+cp .env.example .env
+nano .env  # MUST set DOMAIN_NAME and DATABASE_PASSWORD
+```
+
+### Option A: Standard Setup (Pre-built Images - Recommended)
+This is the fastest way to get core services running.
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Option B: Interactive Setup (Legacy)
+```bash
 ./setup.sh
 ```
-*   Select **Option 2 (Production)**.
-*   It will create a `.env` file and verify Docker is ready.
 
 ---
 
@@ -58,8 +69,7 @@ BREVO_SMTP_KEY=your-smtp-key
 ### Apply Changes
 If you edit `.env` after running setup, restart containers:
 ```bash
-docker-compose down
-docker-compose up --build -d
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ---
@@ -108,8 +118,14 @@ docker-compose logs -f web
 docker-compose logs -f frontend
 ```
 
-### Update Code
+### Update Code (Fast)
+To deploy updates without 30-minute rebuilds:
 ```bash
-git pull
-docker-compose up --build -d
+git pull origin main
+./deploy.sh
+```
+
+### Full Rebuild (If Dockerfile changes)
+```bash
+docker-compose -f docker-compose.prod.yml up -d --build
 ```
