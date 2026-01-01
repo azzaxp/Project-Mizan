@@ -95,9 +95,17 @@ python manage.py runserver
 cd frontend && npm run dev
 ```
 
-**Production:**
+**Production (Recommended - Uses Pre-built Images):**
 ```bash
-docker-compose up -d
+git pull origin main
+./deploy.sh
+```
+
+> 💡 This pulls pre-built Docker images from GitHub Container Registry, taking ~30 seconds instead of rebuilding locally (~30 minutes).
+
+**Production (Build Locally):**
+```bash
+docker-compose up -d --build
 ```
 
 ---
