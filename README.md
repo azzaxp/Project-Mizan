@@ -71,21 +71,29 @@
 
 ## 🚀 Quick Start
 
-### One-Click Installer
+### First Time Setup (Fresh Server)
 
 ```bash
 git clone https://github.com/azzaxp/digitaljamath.git
 cd digitaljamath
-./setup.sh
+cp .env.example .env
+# Edit .env with your database password, domain, etc.
+
+# Start all services using pre-built images
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-**Choose your mode:**
-- **Option 1: Development** - Local Python venv + npm dev server
-- **Option 2: Production** - Full Docker stack (Django + Nginx + Postgres + Redis)
+### Future Updates (~30 seconds)
 
-### Manual Commands
+```bash
+git pull origin main
+./deploy.sh
+```
 
-**Development:**
+> 💡 `deploy.sh` pulls pre-built Docker images from GitHub Container Registry. No local builds needed!
+
+### Development Mode
+
 ```bash
 # Terminal 1 (Backend)
 source venv/bin/activate
@@ -93,19 +101,6 @@ python manage.py runserver
 
 # Terminal 2 (Frontend)
 cd frontend && npm run dev
-```
-
-**Production (Recommended - Uses Pre-built Images):**
-```bash
-git pull origin main
-./deploy.sh
-```
-
-> 💡 This pulls pre-built Docker images from GitHub Container Registry, taking ~30 seconds instead of rebuilding locally (~30 minutes).
-
-**Production (Build Locally):**
-```bash
-docker-compose up -d --build
 ```
 
 ---
