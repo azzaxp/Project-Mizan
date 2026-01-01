@@ -6,7 +6,13 @@
 **DigitalJamath** is an open-source, production-grade SaaS ERP for Indian Masjids, Jamaths, and Welfare organizations. It provides a robust multi-tenant architecture to handle census data, financial management (Baitul Maal), welfare distribution, and community engagement.
 
 <p align="center">
-  <img src="frontend/public/og-image.png" alt="DigitalJamath Preview" width="800"/>
+  <img src="frontend/public/logo.png" alt="DigitalJamath Logo" width="200" onerror="this.style.display='none'"/>
+</p>
+
+---
+
+<p align="center">
+  <img src="frontend/public/og-image.png" alt="DigitalJamath Preview" width="100%"/>
 </p>
 
 ---
